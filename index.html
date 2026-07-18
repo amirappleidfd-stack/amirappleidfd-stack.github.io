@@ -293,9 +293,26 @@
             pointer-events: none; text-align: center; line-height: 1.4;
         }
 
-        @media (max-width: 720px) {
-            .card-flip { width: 88vw; }
-            .cards-row { flex-direction: column; }
+        @media (max-width: 600px) {
+            .cards-row { gap: 10px; }
+            .card-flip { width: 46vw; height: 380px; }
+            .card-front { padding: 18px 12px; }
+            .card-back { padding: 18px 12px; }
+            .avatar-wrapper { width: 72px; height: 72px; margin-bottom: 10px; }
+            .profile-name { font-size: 16px; margin-bottom: 5px; }
+            .location { font-size: 11px; margin-bottom: 14px; }
+            .social-buttons { gap: 8px; margin-bottom: 14px; }
+            .social-btn { width: 38px; height: 38px; }
+            .social-btn svg { width: 18px; height: 18px; }
+            .views-count { font-size: 11px; }
+            .views-count svg { width: 13px; height: 13px; }
+            .card-text-tl, .card-text-bl { font-size: 8px; }
+            .card-extra-img { width: 28px; height: 28px; top: 10px; right: 10px; }
+            .love-btn { padding: 9px 22px; font-size: 13px; }
+            .main-container { gap: 14px; padding: 12px; }
+            .neon-pink { font-size: 15px; }
+            .neon-sub { font-size: 9px; }
+            .watermark { font-size: 7px; }
         }
     </style>
 </head>
