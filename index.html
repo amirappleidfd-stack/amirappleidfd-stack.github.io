@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sama & amir · Liquid Glass</title>
+    <style>
+        :root {
+            --neon-red: #ff1f4b;
+            --neon-red-soft: rgba(255, 31, 75, 0.55);
+            --neon-red-glow: rgba(255, 31, 75, 0.7);
+            --neon-pink: #ff4fd8;
+            --glass-bg: rgba(20, 20, 26, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.10);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%; height: 100%; overflow: hidden; background-color: #000;
+        }
+
+        /* ===== Intro ===== */
+        .intro-screen {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, #151515 0%, #000 100%);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 50;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+            cursor: pointer;
+        }
+        .intro-screen.hide { opacity: 0; visibility: hidden; }
+
+        .arrow-btn {
+            width: 70px; height: 70px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 25px;
+            animation: bounce 1.8s infinite ease-in-out;
+            transition: background .3s, border-color .3s, box-shadow .3s;
+        }
+        .intro-screen:hover .arrow-btn {
+            background: var(--neon-red-soft);
+            border-color: var(--neon-red);
+            box-shadow: 0 0 22px var(--neon-red-soft);
+        }
+        .arrow-btn::after {
+            content: ''; width: 16px; height: 16px;
+            border-top: 3px solid #fff; border-left: 3px solid #fff;
+            transform: rotate(45deg); margin-top: 6px;
+        }
+        .enter-text {
+            color: #fff; font-size: 14px; letter-spacing: 5px;
+            font-weight: 600; text-transform: uppercase; opacity: .8;
+        }
+        @keyframes bounce {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* ===== Main ===== */
+        .main-container {
+            position: relative; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 20px; gap: 22px;
+        }
+
+        .bg-video {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 1;
+            filter: brightness(0.4) blur(4px);
+            transition: filter .6s;
+        }
+        .main-container.love .bg-video {
+            filter: brightness(0.22) blur(5px) sepia(0.3) hue-rotate(-30deg);
+        }
+
+        .glass-layer {
+            position: absolute; inset: 0; z-index: 1;
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .love-btn {
+            position: relative; z-index: 5;
+            padding: 12px 34px; border-radius: 50px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            border: 1px solid var(--glass-border);
+            color: #fff; font-size: 16px; letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(255,31,75,0.18), inset 0 0 12px rgba(255,255,255,0.05);
+            transition: transform .25s, box-shadow .25s, border-color .25s;
+        }
+        .love-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--neon-red);
+            box-shadow: 0 10px 36px var(--neon-red-soft), inset 0 0 16px rgba(255,31,75,0.12);
+        }
+        .love-btn.active {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 25px var(--neon-red-soft), 0 0 40px var(--neon-red-glow);
+            color: var(--neon-red);
+            text-shadow: 0 0 12px var(--neon-red-glow);
+        }
+
+        /* ===== Cards row ===== */
+        .cards-row {
+            position: relative; z-index: 3;
+            display: flex; gap: 26px;
+            flex-wrap: wrap; justify-content: center;
+            perspective: 1400px;
+        }
+
+        /* 3D flip wrapper */
+        .card-flip {
+            width: 320px; height: 460px;
+            transform-style: preserve-3d;
+            transform: rotateY(0deg);
+            transition: transform .9s cubic-bezier(.175,.885,.32,1.275);
+            opacity: 0;
+        }
+        .main-container.active .card-flip {
+            opacity: 1;
+        }
+        .main-container.love .card-flip {
+            transform: rotateY(180deg);
+        }
+
+        /* common face styles */
+        .card-face {
+            position: absolute; inset: 0;
+            border-radius: 28px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px) saturate(150%);
+            -webkit-backdrop-filter: blur(15px) saturate(150%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.55), inset 0 0 20px rgba(255,255,255,0.04);
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden;
+            transition: border-color .4s, box-shadow .4s;
+        }
+        .card-face::before {
+            content: ''; position: absolute; inset: 0; border-radius: 28px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .card-face:hover {
+            border-color: var(--neon-red);
+            box-shadow: 0 24px 60px var(--neon-red-soft), inset 0 0 22px rgba(255,31,75,0.10);
+        }
+
+        /* Front */
+        .card-front {
+            transform: rotateY(0deg);
+            padding: 26px 22px;
+        }
+
+        /* Back */
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(160deg, rgba(40,0,30,0.65), rgba(20,0,15,0.75));
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,79,216,0.35);
+            justify-content: center; align-items: center;
+            text-align: center; padding: 24px;
+            box-shadow: inset 0 0 30px rgba(255,79,216,0.25),
+                        0 20px 50px rgba(0,0,0,0.55);
+        }
+        .card-back .neon-pink {
+            color: var(--neon-pink); font-size: 22px; font-weight: bold;
+            text-shadow: 0 0 8px var(--neon-pink), 0 0 18px rgba(255,79,216,0.8);
+            line-height: 1.6;
+            animation: pinkPulse 2.4s infinite ease-in-out;
+        }
+        .card-back .neon-sub {
+            color: rgba(255,79,216,0.5); font-size: 12px; margin-top: 10px;
+            letter-spacing: 3px;
+        }
+        @keyframes pinkPulse {
+            0%,100% { text-shadow: 0 0 8px var(--neon-pink), 0 0 18px rgba(255,79,216,0.6); }
+            50%     { text-shadow: 0 0 14px var(--neon-pink), 0 0 30px rgba(255,79,216,1); }
+        }
+
+        /* Card inner elements */
+        .avatar-wrapper {
+            width: 110px; height: 110px; margin: 0 auto 18px;
+            border-radius: 50%; padding: 3px;
+            background: linear-gradient(45deg, var(--neon-red), rgba(255,255,255,0.25));
+            box-shadow: 0 0 18px var(--neon-red-soft);
+        }
+        .avatar {
+            width: 100%; height: 100%; border-radius: 50%;
+            object-fit: cover; background: #333;
+        }
+        .profile-name {
+            color: #fff; font-size: 24px; font-weight: bold;
+            margin-bottom: 8px; letter-spacing: 1px;
+        }
+        .location {
+            display: flex; align-items: center; gap: 6px;
+            color: #a0a0a5; font-size: 14px; margin-bottom: 22px;
+        }
+        .location svg { width: 15px; height: 15px; fill: #a0a0a5; }
+        .social-buttons { display: flex; gap: 14px; margin-bottom: 22px; }
+        .social-btn {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: center; align-items: center;
+            transition: transform .3s, background .3s, border-color .3s, box-shadow .3s;
+        }
+        .social-btn:hover {
+            transform: translateY(-3px);
+            border-color: var(--neon-red);
+            box-shadow: 0 0 16px var(--neon-red-soft);
+        }
+        .social-btn svg { width: 22px; height: 22px; }
+        .views-count {
+            display: flex; align-items: center; gap: 8px;
+            color: #707075; font-size: 13px;
+        }
+        .views-count svg { width: 16px; height: 16px; fill: #707075; }
+
+        /* extra texts on card */
+        .card-text-tl {
+            position: absolute; top: 16px; left: 16px;
+            color: rgba(255,255,255,0.4); font-size: 10px;
+            letter-spacing: 2px; writing-mode: vertical-rl;
+        }
+        .card-text-bl {
+            position: absolute; bottom: 16px; left: 16px;
+            color: rgba(255,255,255,0.3); font-size: 10px;
+            letter-spacing: 2px; writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+        .card-extra-img {
+            position: absolute; top: 14px; right: 14px;
+            width: 38px; height: 38px; border-radius: 10px;
+            object-fit: cover; border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        /* ===== Hearts canvas ===== */
+        .hearts-canvas {
+            position: absolute; inset: 0; z-index: 2;
+            pointer-events: none; opacity: 0; transition: opacity .8s;
+        }
+        .main-container.love .hearts-canvas { opacity: 1; }
+
+        /* ===== Audio control ===== */
+        .audio-player {
+            position: absolute; bottom: 30px; right: 30px; z-index: 6;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 10px 15px; border-radius: 50px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .mute-btn {
+            background: none; border: none; color: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mute-btn svg { width: 18px; height: 18px; fill: #fff; }
+        .volume-slider {
+            -webkit-appearance: none; appearance: none;
+            width: 70px; height: 4px;
+            background: rgba(255,255,255,0.2); border-radius: 2px; outline: none;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: var(--neon-red); cursor: pointer;
+            box-shadow: 0 0 8px var(--neon-red-soft);
+        }
+
+        .watermark {
+            position: absolute; bottom: 15px; left: 50%;
+            transform: translateX(-50%); z-index: 3;
+            color: rgba(255,255,255,0.2); font-size: 9px;
+            letter-spacing: 1px; text-transform: uppercase;
+            pointer-events: none; text-align: center; line-height: 1.4;
+        }
+
+        @media (max-width: 720px) {
+            .card-flip { width: 88vw; }
+            .cards-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Intro -->
+    <div class="intro-screen" id="introScreen" onclick="enterSite()">
+        <div class="arrow-btn"></div>
+        <div class="enter-text">CLICK TO ENTER</div>
+    </div>
+
+    <!-- Main -->
+    <div class="main-container" id="mainContainer">
+        <video class="bg-video" id="bgVideo" loop playsinline muted>
+            <source src="video.mp4" type="video/mp4">
+        </video>
+        <div class="glass-layer"></div>
+        <canvas class="hearts-canvas" id="heartsCanvas"></canvas>
+
+        <button class="love-btn" id="loveBtn" onclick="toggleLove()">my love</button>
+
+        <div class="cards-row">
+
+            <!-- ===== Sama card (right in RTL) ===== -->
+            <div class="card-flip">
+                <div class="card-face card-front">
+                    <img src="sama.jpg" alt="" class="card-extra-img">
+                    <div class="card-text-tl">SAMA · 02</div>
+                    <div class="card-text-bl">FOREVER</div>
+                    <div class="avatar-wrapper">
+                        <img src="sama.jpg" alt="Sama" class="avatar">
+                    </div>
+                    <div class="profile-name">𝓼𝓪𝓶𝓪</div>
+                    <div class="location">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span>mazandaran</span>
+                    </div>
+                    <div class="social-buttons">
+                        <a href="https://t.me/g1ithub" target="_blank" class="social-btn" title="Telegram">
+                            <svg viewBox="0 0 24 24"><path fill="#fff" d="M9.78 18.65l.28-4.28 7.68-6.92c.34-.31-.07-.48-.52-.19L7.74 13.3 3.64 12c-.89-.28-.89-.89.19-1.31l16.03-6.17c.74-.27 1.39.18 1.15 1.15l-2.72 12.81c-.19.94-.76 1.17-1.55.73l-4.13-3.04-2 1.93c-.23.23-.41.41-.83.41z"/></svg>
+                        </a>
+                        <a href="https://github.com/amirappleidfd-stack" target="_blank" class="social-btn" title="GitHub">
+                            <svg viewBox="0 0 24 24"><path fill="#fff" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.23 1.92 1.23 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>
+                        </a>
+                    </div>
+                    <div class="views-count">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <span id="viewCountAmir">5210</span>
+                    </div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="neon-pink">my love<br>sama ♥</div>
+                    <div class="neon-sub">— FOREVER YOURS —</div>
+                </div>
+            </div>
+
+            <!-- ===== Amir card (left in RTL) ===== -->
+            <div class="card-flip">
+                <div class="card-face card-front">
+                    <img src="amir.jpg" alt="" class="card-extra-img">
+                    <div class="card-text-tl">AMIR · 01</div>
+                    <div class="card-text-bl">LOVE · STORY</div>
+                    <div class="avatar-wrapper">
+                        <img src="amir.jpg" alt="Amir" class="avatar">
+                    </div>
+                    <div class="profile-name">𝓐𝓶𝓲𝓻</div>
+                    <div class="location">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span>lorestan</span>
+                    </div>
+                    <div class="social-buttons">
+                        <a href="https://t.me/g1ithub" target="_blank" class="social-btn" title="Telegram">
+                            <svg viewBox="0 0 24 24"><path fill="#fff" d="M9.78 18.65l.28-4.28 7.68-6.92c.34-.31-.07-.48-.52-.19L7.74 13.3 3.64 12c-.89-.28-.89-.89.19-1.31l16.03-6.17c.74-.27 1.39.18 1.15 1.15l-2.72 12.81c-.19.94-.76 1.17-1.55.73l-4.13-3.04-2 1.93c-.23.23-.41.41-.83.41z"/></svg>
+                        </a>
+                        <a href="https://github.com/amirappleidfd-stack" target="_blank" class="social-btn" title="GitHub">
+                            <svg viewBox="0 0 24 24"><path fill="#fff" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.02c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.95 0-1.31.47-2.39 1.24-3.23-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.23 1.92 1.23 3.23 0 4.62-2.81 5.64-5.49 5.94.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg>
+                        </a>
+                    </div>
+                    <div class="views-count">
+                        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <span id="viewCountZ">8304</span>
+                    </div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="neon-pink">my love<br>amir ♥</div>
+                    <div class="neon-sub">— FOREVER YOURS —</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- audio -->
+        <div class="audio-player">
+            <button class="mute-btn" id="muteBtn" onclick="toggleMute()">
+                <svg id="soundOnIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                <svg id="soundOffIcon" viewBox="0 0 24 24" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </button>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" oninput="changeVolume(this.value)">
+        </div>
+
+        <div class="watermark">T.ME / amir3ui<br>GITHUB / amir3ui</div>
+    </div>
+
+    <script>
+        const introScreen   = document.getElementById('introScreen');
+        const mainContainer = document.getElementById('mainContainer');
+        const bgVideo       = document.getElementById('bgVideo');
+        const soundOnIcon   = document.getElementById('soundOnIcon');
+        const soundOffIcon  = document.getElementById('soundOffIcon');
+        const loveBtn       = document.getElementById('loveBtn');
+        const heartsCanvas  = document.getElementById('heartsCanvas');
+        const hctx          = heartsCanvas.getContext('2d');
+
+        let hearts = [];
+        let heartsRAF = null;
+
+        function resizeCanvas(){
+            heartsCanvas.width  = window.innerWidth;
+            heartsCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawHeart(x, y, s, alpha){
+            hctx.save();
+            hctx.translate(x, y);
+            hctx.scale(s, s);
+            hctx.globalAlpha = alpha;
+            hctx.fillStyle = '#ff4fd8';
+            hctx.shadowColor = '#ff4fd8';
+            hctx.shadowBlur = 12;
+            hctx.beginPath();
+            hctx.moveTo(0, 3);
+            hctx.bezierCurveTo(0, 1, -2, -2, -4, -2);
+            hctx.bezierCurveTo(-8, -2, -8, 3, -8, 3);
+            hctx.bezierCurveTo(-8, 6, -4, 9, 0, 12);
+            hctx.bezierCurveTo(4, 9, 8, 6, 8, 3);
+            hctx.bezierCurveTo(8, 3, 8, -2, 4, -2);
+            hctx.bezierCurveTo(2, -2, 0, 1, 0, 3);
+            hctx.closePath();
+            hctx.fill();
+            hctx.restore();
+        }
+
+        function spawnHeart(){
+            hearts.push({
+                x: Math.random() * heartsCanvas.width,
+                y: heartsCanvas.height + 20,
+                s: 0.6 + Math.random() * 1.2,
+                vy: 0.6 + Math.random() * 1.4,
+                vx: (Math.random() - 0.5) * 0.8,
+                a: 0.5 + Math.random() * 0.5,
+                sway: Math.random() * Math.PI * 2
+            });
+        }
+
+        function animateHearts(){
+            hctx.clearRect(0, 0, heartsCanvas.width, heartsCanvas.height);
+            if (Math.random() < 0.35) spawnHeart();
+            for (let i = hearts.length - 1; i >= 0; i--){
+                const h = hearts[i];
+                h.y -= h.vy;
+                h.sway += 0.05;
+                h.x += Math.sin(h.sway) * 0.6 + h.vx;
+                drawHeart(h.x, h.y, h.s, h.a);
+                if (h.y < -30) hearts.splice(i, 1);
+            }
+            heartsRAF = requestAnimationFrame(animateHearts);
+        }
+
+        function enterSite() {
+            introScreen.classList.add('hide');
+            mainContainer.classList.add('active');
+            bgVideo.muted = false;
+            bgVideo.volume = 0.5;
+            bgVideo.play().catch(e => console.log("playback:", e));
+        }
+
+        function toggleLove() {
+            const on = mainContainer.classList.toggle('love');
+            loveBtn.classList.toggle('active', on);
+            if (on) {
+                if (!heartsRAF) animateHearts();
+            } else {
+                cancelAnimationFrame(heartsRAF);
+                heartsRAF = null;
+                hctx.clearRect(0, 0, heartsCanvas.width, heartsCanvas.height);
+                hearts = [];
+            }
+        }
+
+        function toggleMute() {
+            if (bgVideo.muted) {
+                bgVideo.muted = false;
+                soundOnIcon.style.display = 'block';
+                soundOffIcon.style.display = 'none';
+            } else {
+                bgVideo.muted = true;
+                soundOnIcon.style.display = 'none';
+                soundOffIcon.style.display = 'block';
+            }
+        }
+
+        function changeVolume(v){
+            bgVideo.volume = v;
+            if (v == 0) {
+                bgVideo.muted = true;
+                soundOnIcon.style.display = 'none';
+                soundOffIcon.style.display = 'block';
+            } else {
+                bgVideo.muted = false;
+                soundOnIcon.style.display = 'block';
+                soundOffIcon.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
